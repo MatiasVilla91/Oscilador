@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect} from 'react';
 
 
 const frequencyList = {
@@ -160,11 +160,11 @@ const NoteFrequencyList = ({ frequencyList }) => {
 
 function ToneGenerator() {
   const [frequencies, setFrequencies] = useState({
-    tonic: 20,
-    third: 1000,
-    fifth: 5000,
-    seventh: 10000,
-    subBass: 20,
+    tonic: 0,
+    third: 0,
+    fifth: 0,
+    seventh: 0,
+    subBass: 0,
   });
   const [isPlaying, setIsPlaying] = useState(false);
   const [waveform, setWaveform] = useState('sine');
@@ -177,6 +177,14 @@ function ToneGenerator() {
   });
   const audioContextRef = useRef(null);
   const oscillatorsRef = useRef({});
+
+  useEffect(() => {
+    if (isPlaying) {
+      Object.entries(oscillatorsRef.current).forEach(([key, oscillator]) => {
+        oscillator.frequency.setValueAtTime(frequencies[key], audioContextRef.current.currentTime);
+      });
+    }
+  }, [frequencies, isPlaying]);
 
   const startTones = () => {
     if (!isPlaying) {
@@ -229,113 +237,50 @@ function ToneGenerator() {
   };
   return (
     <div>
-      <h2>Generador de Tonos</h2>
       <div>
-        <p>Tónica:</p>
-        <input
-          type="range"
-          value={frequencies.tonic}
-          onChange={(event) => handleFrequencyChange(event, 'tonic')}
-          min="0"
-          max="20000"
-        />
-        <input
-          type="number"
-          value={frequencies.tonic}
-          onChange={(event) => handleFrequencyChange(event, 'tonic')}
-          min="0"
-          max="20000"
-        />
-        <span id="tonic-label">{activeNotes.tonic && `${activeNotes.tonic} - `}{frequencies.tonic} Hz</span>
+      
+        <div>
+          {Object.entries(frequencies).map(([tone, frequency]) => (
+            <div key={tone}>
+              <span>{tone}:</span>
+              <input
+                type="number"
+                min="20"
+                max="20000"
+                step="1"
+                value={frequency}
+                onChange={(event) => handleFrequencyChange(event, tone)}
+              />
+              <select value={frequency} onChange={(event) => handleFrequencyChange(event, tone)}>
+                {Object.entries(frequencyList).map(([note, freq]) => (
+                  <option key={note} value={freq}>
+                    {`${note}: ${freq} Hz`}
+                  </option>
+                ))}
+              </select>
+            </div>
+          ))}
+        </div>
+        <div>
+          <span>Waveform:</span>
+          <select value={waveform} onChange={handleWaveformChange}>
+            <option value="sine">Sine</option>
+            <option value="square">Square</option>
+            <option value="sawtooth">Sawtooth</option>
+            <option value="triangle">Triangle</option>
+          </select>
+        </div>
+        <button onClick={isPlaying ? stopTones : startTones}>
+          {isPlaying ? 'Stop' : 'Start'} Tones
+        </button>
       </div>
-      <div>
-        <p>Tercera:</p>
-        <input
-          type="range"
-          value={frequencies.third}
-          onChange={(event) => handleFrequencyChange(event, 'third')}
-          min="0"
-          max="20000"
-        />
-        <input
-          type="number"
-          value={frequencies.third}
-          onChange={(event) => handleFrequencyChange(event, 'third')}
-          min="0"
-          max="20000"
-        />
-        <span id="third-label">{activeNotes.third && `${activeNotes.third} - `}{frequencies.third} Hz</span>
-      </div>
-      <div>
-        <p>Quinta:</p>
-        <input
-          type="range"
-          value={frequencies.fifth}
-          onChange={(event) => handleFrequencyChange(event, 'fifth')}
-          min="0"
-          max="20000"
-        />
-        <input
-          type="number"
-          value={frequencies.fifth}
-          onChange={(event) => handleFrequencyChange(event, 'fifth')}
-          min="0"
-          max="20000"
-        />
-        <span id="fifth-label">{activeNotes.fifth && `${activeNotes.fifth} - `}{frequencies.fifth} Hz</span>
-      </div>
-      <div>
-        <p>Séptima:</p>
-        <input
-          type="range"
-          value={frequencies.seventh}
-          onChange={(event) => handleFrequencyChange(event, 'seventh')}
-          min="0"
-          max="20000"
-        />
-        <input
-          type="number"
-          value={frequencies.seventh}
-          onChange={(event) => handleFrequencyChange(event, 'seventh')}
-          min="0"
-          max="20000"
-        />
-        <span id="seventh-label">{activeNotes.seventh && `${activeNotes.seventh} - `}{frequencies.seventh} Hz</span>
-      </div>
-      <div>
-        <p>Subbajo:</p>
-        <input
-          type="range"
-          value={frequencies.subBass}
-          onChange={(event) => handleFrequencyChange(event, 'subBass')}
-          min="0"
-          max="20000"
-        />
-        <input
-          type="number"
-          value={frequencies.subBass}
-          onChange={(event) => handleFrequencyChange(event, 'subBass')}
-          min="0"
-          max="20000"
-        />
-        <span id="subBass-label">{activeNotes.subBass && `${activeNotes.subBass} - `}{frequencies.subBass} Hz</span>
-      </div>
-      <div>
-        <p>Forma de onda:</p>
-        <select value={waveform} onChange={handleWaveformChange}>
-          <option value="sine">Sine</option>
-          <option value="square">Square</option>
-          <option value="sawtooth">Sawtooth</option>
-          <option value="triangle">Triangle</option>
-        </select>
-      </div>
-      <button onClick={startTones}>Reproducir</button>
-      <button onClick={stopTones}>Detener</button>
-      <NoteFrequencyList frequencyList={frequencyList} />
+
     </div>
+  );
+
 
     
-  );
+
 
   
 }
