@@ -36,3 +36,24 @@
     transform: rotate(360deg);
   }
 }
+
+/* styles.css */
+.sequencer {
+  display: flex;
+  flex-direction: column;
+}
+
+.step {
+  display: flex;
+}
+
+.cell {
+  width: 20px;
+  height: 20px;
+  border: 1px solid black;
+  margin: 2px;
+}
+
+.active {
+  background-color: blue;
+}
